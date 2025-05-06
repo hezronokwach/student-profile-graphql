@@ -1,0 +1,87 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f4f4f4;
+  }
+  
+  .profile-container {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 800px;
+  }
+  
+  h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  h2 {
+    color: #555;
+    margin-top: 20px;
+  }
+  
+  #auth-controls {
+    text-align: right;
+    margin-bottom: 20px;
+  }
+  
+  #auth-controls a, #logout-button {
+    margin-left: 10px;
+    padding: 8px 12px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  #auth-controls a:hover, #logout-button:hover {
+    background-color: #0056b3;
+  }
+  
+  #user-info, #xp-info, #grades-info, #graphs {
+    margin-bottom: 20px;
+  }
+  
+  #user-info p, #xp-info p {
+    margin: 10px 0;
+  }
+  
+  #grades-list {
+    list-style: none;
+    padding: 0;
+  }
+  
+  #grades-list li {
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  #graphs {
+    border: 1px dashed #ccc;
+    padding: 15px;
+    text-align: center;
+  }
+  
+  .error-message {
+    color: red;
+    text-align: center;
+    margin-top: 10px;
+    min-height: 20px;
+  }
+  
+  @media (max-width: 600px) {
+    .profile-container {
+      padding: 15px;
+    }
+  }
