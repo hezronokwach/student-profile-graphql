@@ -1,0 +1,1 @@
+console.log('School Profile app initialized!');
