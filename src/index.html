@@ -2,18 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>School Profile</title>
   <link rel="stylesheet" href="css/styles.css">
-  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-<script src="https://unpkg.com/graphql-request"></script>
-<script src="https://unpkg.com/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
 </head>
 <body>
   <div id="app">
     <h1>School Profile</h1>
     <p>Welcome to your profile page!</p>
+    <div id="auth-controls">
+      <a href="pages/login.html" id="login-link">Login</a>
+      <button id="logout-button" style="display: none;">Logout</button>
+    </div>
   </div>
   <script src="js/main.js"></script>
 </body>
