@@ -13,6 +13,7 @@
       <a href="../index.html">Home</a>
       <button id="logout-button">Logout</button>
     </div>
+    <div id="loading-spinner" class="spinner">Loading...</div>
     <div id="user-info">
       <h2>User Information</h2>
       <p><strong>ID:</strong> <span id="user-id">Loading...</span></p>
@@ -28,10 +29,12 @@
     </div>
     <div id="graphs">
       <h2>Statistics</h2>
-      <p>Graphs will be displayed here (coming soon).</p>
+      <div id="xp-line-chart" class="chart"></div>
+      <div id="pass-fail-pie-chart" class="chart"></div>
     </div>
     <div id="error-message" class="error-message"></div>
   </div>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
   <script type="module" src="../js/profile.js"></script>
 </body>
 </html>
