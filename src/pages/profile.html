@@ -8,37 +8,52 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100">
-  <div class="profile-container max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-6">
+  <div class="profile-container max-w-6xl mx-auto p-6 shadow-lg rounded-lg">
     <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">User Profile</h1>
     <div id="auth-controls" class="flex justify-end space-x-4 mb-6">
       <a href="../index.html" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Home</a>
       <button id="logout-button" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Logout</button>
     </div>
     <div id="loading-spinner" class="spinner">Loading...</div>
-    <div id="user-info" class="mb-6">
-      <h2 class="text-2xl font-semibold text-gray-700 mb-4">User Information</h2>
-      <p class="text-gray-600"><strong>ID:</strong> <span id="user-id">Loading...</span></p>
-      <p class="text-gray-600"><strong>Login:</strong> <span id="user-login">Loading...</span></p>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- User Information Card -->
+      <div class="card delay-1">
+        <h2 class="text-2xl font-semibold text-blue-600 mb-4">User Information</h2>
+        <p class="text-gray-700"><strong>ID:</strong> <span id="user-id">Loading...</span></p>
+        <p class="text-gray-700"><strong>Login:</strong> <span id="user-login">Loading...</span></p>
+      </div>
+      <!-- Experience Points Card -->
+      <div class="card delay-2">
+        <h2 class="text-2xl font-semibold text-blue-600 mb-4">Experience Points</h2>
+        <p class="text-gray-700"><strong>Total XP:</strong> <span id="total-xp">Loading...</span></p>
+      </div>
+      <!-- Recent Grades Card -->
+      <div class="card delay-3">
+        <h2 class="text-2xl font-semibold text-blue-600 mb-4 cursor-pointer toggle-section">Recent Grades</h2>
+        <ul id="grades-list" class="space-y-2 text-gray-700"></ul>
+      </div>
+      <!-- Recent Exercises & Projects Card -->
+      <div class="card delay-4">
+        <h2 class="text-2xl font-semibold text-blue-600 mb-4 cursor-pointer toggle-section">Recent Exercises & Projects</h2>
+        <ul id="results-list" class="space-y-2 text-gray-700"></ul>
+      </div>
+      <!-- XP Over Time Graph Card -->
+      <div class="card delay-5">
+        <h2 class="text-2xl font-semibold text-blue-600 mb-4">XP Over Time</h2>
+        <div id="xp-line-chart" class="chart"></div>
+      </div>
+      <!-- Pass/Fail Ratio Graph Card -->
+      <div class="card delay-6">
+        <h2 class="text-2xl font-semibold text-blue-600 mb-4">Pass/Fail Ratio</h2>
+        <div id="pass-fail-pie-chart" class="chart"></div>
+      </div>
+      <!-- Exercises vs. Projects Graph Card -->
+      <div class="card delay-7">
+        <h2 class="text-2xl font-semibold text-blue-600 mb-4">Exercises vs. Projects</h2>
+        <div id="exercise-project-bar-chart" class="chart"></div>
+      </div>
     </div>
-    <div id="xp-info" class="mb-6">
-      <h2 class="text-2xl font-semibold text-gray-700 mb-4">Experience Points (XP)</h2>
-      <p class="text-gray-600"><strong>Total XP:</strong> <span id="total-xp">Loading...</span></p>
-    </div>
-    <div id="grades-info" class="mb-6">
-      <h2 class="text-2xl font-semibold text-gray-700 mb-4 cursor-pointer toggle-section">Recent Grades</h2>
-      <ul id="grades-list" class="space-y-2"></ul>
-    </div>
-    <div id="results-info" class="mb-6">
-      <h2 class="text-2xl font-semibold text-gray-700 mb-4 cursor-pointer toggle-section">Recent Exercises & Projects</h2>
-      <ul id="results-list" class="space-y-2"></ul>
-    </div>
-    <div id="graphs" class="mb-6">
-      <h2 class="text-2xl font-semibold text-gray-700 mb-4">Statistics</h2>
-      <div id="xp-line-chart" class="chart"></div>
-      <div id="pass-fail-pie-chart" class="chart"></div>
-      <div id="exercise-project-bar-chart" class="chart"></div>
-    </div>
-    <div id="error-message" class="error-message text-red-500 text-center"></div>
+    <div id="error-message" class="error-message text-red-500 text-center mt-6"></div>
   </div>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script type="module" src="../js/profile.js"></script>
