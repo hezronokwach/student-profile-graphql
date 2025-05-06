@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const userLoginSpan = document.getElementById('user-login');
   const totalXpSpan = document.getElementById('total-xp');
   const gradesList = document.getElementById('grades-list');
+  const resultsList = document.getElementById('results-list');
   const logoutButton = document.getElementById('logout-button');
   const loadingSpinner = document.getElementById('loading-spinner');
 
@@ -74,7 +75,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('Total XP:', totalXp);
     totalXpSpan.textContent = `${totalXp} XP`;
 
-    // Nested query: Fetch recent grades
+    // Nested query: Fetch recent grades (progress)
     const gradesQuery = `
       {
         progress(limit: 5) {
@@ -93,10 +94,38 @@ document.addEventListener('DOMContentLoaded', async () => {
       gradesData.progress.forEach(progress => {
         const li = document.createElement('li');
         li.textContent = `${progress.object.name}: ${progress.grade === 1 ? 'Pass' : 'Fail'} (Date: ${new Date(progress.createdAt).toLocaleDateString()})`;
+        li.dataset.grade = progress.grade;
         gradesList.appendChild(li);
       });
     } else {
       gradesList.innerHTML = '<li>No grades available</li>';
+    }
+
+    // New query: Fetch results and object data
+    const resultsQuery = `
+      {
+        result(limit: 10) {
+          grade
+          createdAt
+          object {
+            name
+            type
+          }
+        }
+      }
+    `;
+    const resultsData = await client.request(resultsQuery);
+    console.log('Results Data:', resultsData);
+    resultsList.innerHTML = '';
+    if (resultsData.result && resultsData.result.length > 0) {
+      resultsData.result.forEach(result => {
+        const li = document.createElement('li');
+        li.textContent = `${result.object.name} (${result.object.type}): ${result.grade === 1 ? 'Pass' : 'Fail'} (Date: ${new Date(result.createdAt).toLocaleDateString()})`;
+        li.dataset.grade = result.grade;
+        resultsList.appendChild(li);
+      });
+    } else {
+      resultsList.innerHTML = '<li>No results available</li>';
     }
 
     // Process data for graphs
@@ -114,13 +143,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       return { date: d.date, cumulativeXp };
     });
 
-    // Pie Chart: Pass/Fail ratio
+    // Pie Chart: Pass/Fail ratio (from progress)
     const passFailData = [
       { label: 'Pass', count: gradesData.progress.filter(p => p.grade === 1).length },
       { label: 'Fail', count: gradesData.progress.filter(p => p.grade === 0).length }
     ].filter(d => d.count > 0);
 
-    // Render Line Chart
+    // Bar Chart: Exercise vs. Project completions (from result)
+    const exerciseProjectData = [
+      { label: 'Exercises', count: resultsData.result.filter(r => r.object.type === 'exercise').length },
+      { label: 'Projects', count: resultsData.result.filter(r => r.object.type === 'project').length }
+    ].filter(d => d.count > 0);
+
+    // Render Line Chart (no dots)
     const lineChart = d3.select('#xp-line-chart');
     lineChart.append('div')
       .attr('class', 'chart-title')
@@ -167,38 +202,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     g.append('path')
       .datum(cumulativeData)
       .attr('fill', 'none')
-      .attr('stroke', '#007bff')
+      .attr('stroke', '#3b82f6')
       .attr('stroke-width', 2)
       .attr('d', d3.line()
         .x(d => x(d.date))
         .y(d => y(d.cumulativeXp)));
 
-    // Add points and tooltips for line chart
+    // Render Pie Chart with interactivity
     const tooltip = d3.select('body').append('div')
       .attr('class', 'tooltip')
       .style('opacity', 0);
 
-    g.selectAll('dot')
-      .data(cumulativeData)
-      .enter()
-      .append('circle')
-      .attr('r', 5)
-      .attr('cx', d => x(d.date))
-      .attr('cy', d => y(d.cumulativeXp))
-      .attr('fill', '#007bff')
-      .on('mouseover', function (event, d) {
-        d3.select(this).attr('r', 7);
-        tooltip.transition().duration(200).style('opacity', .9);
-        tooltip.html(`Date: ${d.date.toLocaleDateString()}<br>XP: ${d.cumulativeXp}`)
-          .style('left', (event.pageX + 10) + 'px')
-          .style('top', (event.pageY - 28) + 'px');
-      })
-      .on('mouseout', function () {
-        d3.select(this).attr('r', 5);
-        tooltip.transition().duration(500).style('opacity', 0);
-      });
-
-    // Render Pie Chart
     const pieChart = d3.select('#pass-fail-pie-chart');
     pieChart.append('div')
       .attr('class', 'chart-title')
@@ -227,7 +241,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     arcs.append('path')
       .attr('d', arc)
-      .attr('fill', d => d.data.label === 'Pass' ? '#28a745' : '#dc3545')
+      .attr('fill', d => d.data.label === 'Pass' ? '#22c55e' : '#ef4444')
       .on('mouseover', function (event, d) {
         d3.select(this).attr('opacity', 0.8);
         tooltip.transition().duration(200).style('opacity', .9);
@@ -238,6 +252,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       .on('mouseout', function () {
         d3.select(this).attr('opacity', 1);
         tooltip.transition().duration(500).style('opacity', 0);
+      })
+      .on('click', function (event, d) {
+        const grade = d.data.label === 'Pass' ? 1 : 0;
+        resultsList.querySelectorAll('li').forEach(li => {
+          li.style.display = li.dataset.grade == grade ? 'block' : 'none';
+        });
       });
 
     arcs.append('text')
@@ -246,8 +266,74 @@ document.addEventListener('DOMContentLoaded', async () => {
       .attr('text-anchor', 'middle')
       .text(d => `${d.data.label}: ${d.data.count}`);
 
+    // Render Bar Chart
+    const barChart = d3.select('#exercise-project-bar-chart');
+    barChart.append('div')
+      .attr('class', 'chart-title')
+      .text('Exercises vs. Projects Completed');
+
+    const barSvg = barChart.append('svg')
+      .attr('width', width + margin.left + margin.right)
+      .attr('height', height + margin.top + margin.bottom);
+
+    const barG = barSvg.append('g')
+      .attr('transform', `translate(${margin.left},${margin.top})`);
+
+    const barX = d3.scaleBand()
+      .domain(exerciseProjectData.map(d => d.label))
+      .range([0, width])
+      .padding(0.2);
+
+    const barY = d3.scaleLinear()
+      .domain([0, d3.max(exerciseProjectData, d => d.count)])
+      .range([height, 0]);
+
+    barG.append('g')
+      .attr('transform', `translate(0,${height})`)
+      .call(d3.axisBottom(barX));
+
+    barG.append('g')
+      .call(d3.axisLeft(barY))
+      .append('text')
+      .attr('fill', '#000')
+      .attr('transform', 'rotate(-90)')
+      .attr('y', 6)
+      .attr('dy', '0.71em')
+      .attr('text-anchor', 'end')
+      .text('Count');
+
+    barG.selectAll('.bar')
+      .data(exerciseProjectData)
+      .enter()
+      .append('rect')
+      .attr('class', 'bar')
+      .attr('x', d => barX(d.label))
+      .attr('y', d => barY(d.count))
+      .attr('width', barX.bandwidth())
+      .attr('height', d => height - barY(d.count))
+      .attr('fill', d => d.label === 'Exercises' ? '#10b981' : '#8b5cf6')
+      .on('mouseover', function (event, d) {
+        d3.select(this).attr('opacity', 0.8);
+        tooltip.transition().duration(200).style('opacity', .9);
+        tooltip.html(`${d.label}: ${d.count}`)
+          .style('left', (event.pageX + 10) + 'px')
+          .style('top', (event.pageY - 28) + 'px');
+      })
+      .on('mouseout', function () {
+        d3.select(this).attr('opacity', 1);
+        tooltip.transition().duration(500).style('opacity', 0);
+      });
+
     // Hide loading spinner
     loadingSpinner.classList.remove('active');
+
+    // Toggleable sections
+    document.querySelectorAll('.toggle-section').forEach(header => {
+      header.addEventListener('click', () => {
+        const section = header.nextElementSibling;
+        section.style.display = section.style.display === 'none' ? 'block' : 'none';
+      });
+    });
   } catch (error) {
     errorMessage.textContent = 'Error fetching profile data or rendering graphs. Please try again.';
     console.error('GraphQL error:', error);

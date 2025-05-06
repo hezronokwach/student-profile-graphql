@@ -5,34 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Profile - School Profile</title>
   <link rel="stylesheet" href="../css/profile.css">
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <div class="profile-container">
-    <h1>User Profile</h1>
-    <div id="auth-controls">
-      <a href="../index.html">Home</a>
-      <button id="logout-button">Logout</button>
+<body class="bg-gray-100">
+  <div class="profile-container max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-6">
+    <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">User Profile</h1>
+    <div id="auth-controls" class="flex justify-end space-x-4 mb-6">
+      <a href="../index.html" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Home</a>
+      <button id="logout-button" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Logout</button>
     </div>
     <div id="loading-spinner" class="spinner">Loading...</div>
-    <div id="user-info">
-      <h2>User Information</h2>
-      <p><strong>ID:</strong> <span id="user-id">Loading...</span></p>
-      <p><strong>Login:</strong> <span id="user-login">Loading...</span></p>
+    <div id="user-info" class="mb-6">
+      <h2 class="text-2xl font-semibold text-gray-700 mb-4">User Information</h2>
+      <p class="text-gray-600"><strong>ID:</strong> <span id="user-id">Loading...</span></p>
+      <p class="text-gray-600"><strong>Login:</strong> <span id="user-login">Loading...</span></p>
     </div>
-    <div id="xp-info">
-      <h2>Experience Points (XP)</h2>
-      <p><strong>Total XP:</strong> <span id="total-xp">Loading...</span></p>
+    <div id="xp-info" class="mb-6">
+      <h2 class="text-2xl font-semibold text-gray-700 mb-4">Experience Points (XP)</h2>
+      <p class="text-gray-600"><strong>Total XP:</strong> <span id="total-xp">Loading...</span></p>
     </div>
-    <div id="grades-info">
-      <h2>Recent Grades</h2>
-      <ul id="grades-list"></ul>
+    <div id="grades-info" class="mb-6">
+      <h2 class="text-2xl font-semibold text-gray-700 mb-4 cursor-pointer toggle-section">Recent Grades</h2>
+      <ul id="grades-list" class="space-y-2"></ul>
     </div>
-    <div id="graphs">
-      <h2>Statistics</h2>
+    <div id="results-info" class="mb-6">
+      <h2 class="text-2xl font-semibold text-gray-700 mb-4 cursor-pointer toggle-section">Recent Exercises & Projects</h2>
+      <ul id="results-list" class="space-y-2"></ul>
+    </div>
+    <div id="graphs" class="mb-6">
+      <h2 class="text-2xl font-semibold text-gray-700 mb-4">Statistics</h2>
       <div id="xp-line-chart" class="chart"></div>
       <div id="pass-fail-pie-chart" class="chart"></div>
+      <div id="exercise-project-bar-chart" class="chart"></div>
     </div>
-    <div id="error-message" class="error-message"></div>
+    <div id="error-message" class="error-message text-red-500 text-center"></div>
   </div>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script type="module" src="../js/profile.js"></script>
