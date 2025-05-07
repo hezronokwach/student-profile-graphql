@@ -56,7 +56,7 @@ async function fetchUserData() {
     });
 
     const data = await response.json();
-    console.log(data); // Debug response
+    console.log(data);
 
     if (!data.data || !data.data.user) {
       throw new Error('Invalid response data structure');
@@ -78,7 +78,6 @@ function populateUserInfo(data) {
 
   const user = data.user[0];
   
-  // Calculate overall grade and XP
   const totalXp = user.transactions
     .filter(t => t.type === 'xp')
     .reduce((sum, t) => sum + t.amount, 0);
@@ -87,22 +86,20 @@ function populateUserInfo(data) {
     ? (user.results.filter(r => r.grade > 0).length / user.results.length * 100).toFixed(1)
     : 0;
 
-  // Update user info card with all information
   const userInfoHtml = `
     <h2 class="text-2xl font-semibold text-blue-600 mb-4">User Information</h2>
     <div class="space-y-2">
-      <p class="text-gray-700"><strong>ID:</strong> ${user.id}</p>
-      <p class="text-gray-700"><strong>Login:</strong> ${user.login}</p>
-      <p class="text-gray-700"><strong>Total XP:</strong> ${Math.round(totalXp).toLocaleString()}</p>
-      <p class="text-gray-700"><strong>Overall Grade:</strong> ${overallGrade}%</p>
-      <p class="text-gray-700"><strong>Total Up Votes:</strong> ${user.totalUp || 0}</p>
-      <p class="text-gray-700"><strong>Total Down Votes:</strong> ${user.totalDown || 0}</p>
+      <div class="key-value-pair"><span class="key">ID:</span> <span class="value">${user.id}</span></div>
+      <div class="key-value-pair"><span class="key">Login:</span> <span class="value">${user.login}</span></div>
+      <div class="key-value-pair"><span class="key">Total XP:</span> <span class="value">${Math.round(totalXp).toLocaleString()}</span></div>
+      <div class="key-value-pair"><span class="key">Overall Grade:</span> <span class="value">${overallGrade}%</span></div>
+      <div class="key-value-pair"><span class="key">Total Up Votes:</span> <span class="value">${user.totalUp || 0}</span></div>
+      <div class="key-value-pair"><span class="key">Total Down Votes:</span> <span class="value">${user.totalDown || 0}</span></div>
     </div>
   `;
 
   document.querySelector('.card.delay-1').innerHTML = userInfoHtml;
 
-  // Update progress display - limit to 5 entries
   const progressList = document.getElementById('grades-list');
   progressList.innerHTML = '';
   
@@ -110,7 +107,7 @@ function populateUserInfo(data) {
     const li = document.createElement('li');
     li.className = 'mb-2 p-2 border-b';
     li.innerHTML = `
-      <span class="font-medium">${prog.object.name || 'Unnamed'}</span>
+      <span class="font-medium value">${prog.object.name || 'Unnamed'}</span>
       <span class="float-right ${prog.grade ? 'text-green-500' : 'text-red-500'}">
         ${prog.grade ? 'Pass' : 'Fail'}
       </span>
@@ -120,7 +117,6 @@ function populateUserInfo(data) {
     progressList.appendChild(li);
   });
 
-  // Update recent results - limit to 5 entries
   const resultsList = document.getElementById('results-list');
   resultsList.innerHTML = '';
   
@@ -128,7 +124,7 @@ function populateUserInfo(data) {
     const li = document.createElement('li');
     li.className = 'mb-2 p-2 border-b';
     li.innerHTML = `
-      <span class="font-medium">${result.object?.name || 'Unnamed'}</span>
+      <span class="font-medium value">${result.object?.name || 'Unnamed'}</span>
       <span class="float-right ${result.grade ? 'text-green-500' : 'text-red-500'}">
         ${result.grade ? 'Pass' : 'Fail'}
       </span>
@@ -139,7 +135,6 @@ function populateUserInfo(data) {
   });
 }
 
-// Add these new functions
 function renderAuditRatioCard(data) {
   const user = data.user[0];
   const auditsDone = user.transactions.filter(t => t.type === 'up' || t.type === 'down').length;
@@ -147,14 +142,13 @@ function renderAuditRatioCard(data) {
 
   const auditHtml = `
     <div class="space-y-2">
-      <p class="text-gray-700"><strong>Audits Done:</strong> ${auditsDone}</p>
-      <p class="text-gray-700"><strong>Audits Received:</strong> ${auditsReceived}</p>
-      <p class="text-gray-700"><strong>Positive Feedback:</strong> ${user.totalUp}</p>
-      <p class="text-gray-700"><strong>Negative Feedback:</strong> ${user.totalDown}</p>
+      <div class="key-value-pair"><span class="key">Audits Done:</span> <span class="value">${auditsDone}</span></div>
+      <div class="key-value-pair"><span class="key">Audits Received:</span> <span class="value">${auditsReceived}</span></div>
+      <div class="key-value-pair"><span class="key">Positive Feedback:</span> <span class="value">${user.totalUp}</span></div>
+      <div class="key-value-pair"><span class="key">Negative Feedback:</span> <span class="value">${user.totalDown}</span></div>
     </div>
   `;
 
-  // Target the correct Audit Statistics card content
   const auditStatsContent = document.querySelector('#audit-stats-card #audit-stats-content');
   if (auditStatsContent) {
     auditStatsContent.innerHTML = auditHtml;
@@ -171,16 +165,15 @@ function renderPiscineStatsCard(data) {
 
   const piscineHtml = `
     <div class="space-y-2">
-      <p class="text-gray-700"><strong>Total Attempts:</strong> ${piscineProjects.length}</p>
-      <p class="text-gray-700"><strong>Passed:</strong> ${passed}</p>
-      <p class="text-gray-700"><strong>Failed:</strong> ${failed}</p>
-      <p class="text-gray-700"><strong>Success Rate:</strong> ${
+      <div class="key-value-pair"><span class="key">Total Attempts:</span> <span class="value">${piscineProjects.length}</span></div>
+      <div class="key-value-pair"><span class="key">Passed:</span> <span class="value">${passed}</span></div>
+      <div class="key-value-pair"><span class="key">Failed:</span> <span class="value">${failed}</span></div>
+      <div class="key-value-pair"><span class="key">Success Rate:</span> <span class="value">${
         piscineProjects.length > 0 ? ((passed / piscineProjects.length) * 100).toFixed(1) : 0
-      }%</p>
+      }%</span></div>
     </div>
   `;
 
-  // Target the correct Piscine Statistics card content
   const piscineStatsContent = document.querySelector('#piscine-stats-card #piscine-stats-content');
   if (piscineStatsContent) {
     piscineStatsContent.innerHTML = piscineHtml;
@@ -189,13 +182,12 @@ function renderPiscineStatsCard(data) {
   }
 }
 
-// Update renderLineChart function
 function renderLineChart(data) {
   if (!data.user[0].transactions.length) return;
 
-  const margin = {top: 40, right: 60, bottom: 60, left: 100}; // Increased left margin
+  const margin = {top: 40, right: 60, bottom: 60, left: 100};
   const width = Math.min(1000, window.innerWidth - 100) - margin.left - margin.right;
-  const height = 300 - margin.top - margin.bottom; // Reduced height
+  const height = 300 - margin.top - margin.bottom;
 
   d3.select('#xp-line-chart').html('');
 
@@ -206,7 +198,6 @@ function renderLineChart(data) {
     .append('g')
     .attr('transform', `translate(${margin.left},${margin.top})`);
 
-  // Prepare data
   const xpData = data.user[0].transactions
     .filter(t => t.type === 'xp')
     .map(t => ({
@@ -215,7 +206,6 @@ function renderLineChart(data) {
     }))
     .sort((a, b) => a.date - b.date);
 
-  // Calculate cumulative XP
   let cumulativeXP = 0;
   const cumulativeData = xpData.map(d => {
     cumulativeXP += d.amount;
@@ -225,7 +215,6 @@ function renderLineChart(data) {
     };
   });
 
-  // Scales
   const x = d3.scaleTime()
     .domain(d3.extent(cumulativeData, d => d.date))
     .range([0, width]);
@@ -234,7 +223,6 @@ function renderLineChart(data) {
     .domain([0, d3.max(cumulativeData, d => d.xp)])
     .range([height, 0]);
 
-  // Add X axis with time formatting
   svg.append('g')
     .attr('transform', `translate(0,${height})`)
     .call(d3.axisBottom(x)
@@ -246,12 +234,10 @@ function renderLineChart(data) {
     .attr("dy", ".15em")
     .attr("transform", "rotate(-45)");
 
-  // Add Y axis
   svg.append('g')
     .call(d3.axisLeft(y)
       .tickFormat(d => `${Math.round(d).toLocaleString()} XP`));
 
-  // Add line
   const line = d3.line()
     .x(d => x(d.date))
     .y(d => y(d.xp));
@@ -264,10 +250,6 @@ function renderLineChart(data) {
     .attr('stroke-width', 2)
     .attr('d', line);
 
-  // Remove axis labels
-  // Removed svg.append("text") for x and y labels
-
-  // Add tooltips
   const tooltip = d3.select('#xp-line-chart')
     .append('div')
     .attr('class', 'tooltip')
@@ -278,17 +260,20 @@ function renderLineChart(data) {
     .style('padding', '8px')
     .style('border-radius', '4px');
 
-  // Add dots for data points
-  svg.selectAll('.dot')
-    .data(cumulativeData)
-    .enter()
-    .append('circle')
-    .attr('class', 'dot')
-    .attr('cx', d => x(d.date))
-    .attr('cy', d => y(d.xp))
-    .attr('r', 4)
-    .attr('fill', '#3498db')
-    .on('mouseover', function(event, d) {
+  // Add a transparent rectangle for tooltip interaction
+  svg.append('rect')
+    .attr('width', width)
+    .attr('height', height)
+    .attr('fill', 'transparent')
+    .on('mousemove', function(event) {
+      const [xPos] = d3.pointer(event);
+      const date = x.invert(xPos);
+      const bisect = d3.bisector(d => d.date).left;
+      const index = bisect(cumulativeData, date, 1);
+      const d0 = cumulativeData[index - 1];
+      const d1 = cumulativeData[index];
+      const d = date - d0.date > d1.date - date ? d1 : d0;
+
       tooltip.transition()
         .duration(200)
         .style('opacity', .9);
@@ -303,7 +288,6 @@ function renderLineChart(data) {
     });
 }
 
-// Update renderPieChart function 
 function renderPieChart(data) {
   console.log('Rendering pie chart with data:', data);
   
@@ -313,7 +297,6 @@ function renderPieChart(data) {
   const passed = results.filter(r => r.grade > 0).length;
   const failed = results.filter(r => r.grade === 0).length;
 
-  // Make sure we're targeting the correct pie chart card
   const pieChartCard = document.querySelector('.card.delay-6');
   if (!pieChartCard) {
     console.error('Pie chart container not found');
@@ -322,15 +305,14 @@ function renderPieChart(data) {
 
   pieChartCard.innerHTML = `
     <h2 class="text-2xl font-semibold text-blue-600 mb-4">Pass/Fail Ratio</h2>
-    <div class="text-center mb-4">
-      <p class="text-gray-700"><strong>Total Results:</strong> ${results.length}</p>
-      <p class="text-green-500"><strong>Passed:</strong> ${passed}</p>
-      <p class="text-red-500"><strong>Failed:</strong> ${failed}</p>
+    <div class="text-center mb-4 space-y-2">
+      <div class="key-value-pair"><span class="key">Total Results:</span> <span class="value">${results.length}</span></div>
+      <div class="key-value-pair"><span class="key">Passed:</span> <span class="value text-green-500">${passed}</span></div>
+      <div class="key-value-pair"><span class="key">Failed:</span> <span class="value text-red-500">${failed}</span></div>
     </div>
     <div id="pass-fail-pie-chart" class="chart flex justify-center items-center h-64"></div>
   `;
 
-  // Only attempt to render the chart if there's data
   if (results.length === 0) {
     document.getElementById('pass-fail-pie-chart').innerHTML = '<p class="text-gray-500">No data available</p>';
     return;
@@ -340,7 +322,6 @@ function renderPieChart(data) {
   const height = 250;
   const radius = Math.min(width, height) / 2;
   
-  // Clear existing SVG
   d3.select('#pass-fail-pie-chart').html('');
   
   const svg = d3.select('#pass-fail-pie-chart')
@@ -353,7 +334,7 @@ function renderPieChart(data) {
 
   const color = d3.scaleOrdinal()
     .domain(['Pass', 'Fail'])
-    .range(['#34D399', '#EF4444']);
+    .range(['#34D399', '#f87171']);
     
   const pie = d3.pie()
     .value(d => d.value);
@@ -367,7 +348,6 @@ function renderPieChart(data) {
     .innerRadius(0)
     .outerRadius(radius * 0.7);
     
-  // Add slices with animation
   svg.selectAll('path')
     .data(data_ready)
     .join('path')
@@ -380,7 +360,6 @@ function renderPieChart(data) {
     .duration(600)
     .style('opacity', 1);
     
-  // Add labels
   svg.selectAll('text')
     .data(data_ready)
     .join('text')
@@ -396,10 +375,8 @@ function renderPieChart(data) {
     .style('opacity', 1);
 }
 
-// Update Recent Exercises & Projects card
 function updateRecentExercises(data) {
   const user = data.user[0];
-  const recentExercisesCard = document.querySelector('.card.delay-4');
   const resultsList = document.getElementById('results-list');
   
   if (!resultsList) {
@@ -413,7 +390,7 @@ function updateRecentExercises(data) {
     const li = document.createElement('li');
     li.className = 'mb-2 p-2 border-b';
     li.innerHTML = `
-      <span class="font-medium">${result.object?.name || 'Unnamed'}</span>
+      <span class="font-medium value">${result.object?.name || 'Unnamed'}</span>
       <span class="float-right ${result.grade ? 'text-green-500' : 'text-red-500'}">
         ${result.grade ? 'Pass' : 'Fail'}
       </span>
@@ -423,8 +400,17 @@ function updateRecentExercises(data) {
     resultsList.appendChild(li);
   });
 }
+document.addEventListener('DOMContentLoaded', () => {
+  
+  const logoutButton = document.getElementById('logout-button')
 
-// Update init function
+  // Handle logout
+  logoutButton.addEventListener('click', () => {
+    localStorage.removeItem('jwt');
+    window.location.href = 'pages/login.html';
+  });
+});
+
 async function init() {
   const data = await fetchUserData();
   if (data) {
@@ -434,7 +420,7 @@ async function init() {
     renderPieChart(data);
     renderAuditRatioCard(data);
     renderPiscineStatsCard(data);
-    updateRecentExercises(data); // Add this line
+    updateRecentExercises(data);
   }
 }
 

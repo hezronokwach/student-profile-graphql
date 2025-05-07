@@ -4,10 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>School Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
   <div id="app">
+    <div id="auth-controls">
+      <a href="pages/login.html" id="login-link" class="btn btn-primary">Login</a>
+      <a href="pages/profile.html" id="profile-link" class="btn btn-primary text-decoration-none" style="display: none;">View Profile</a>
+      <button id="logout-button" class="btn btn-danger" style="display: none;">Logout</button>
+    </div>
     <div class="landing-container">
       <div class="text-content">
         <h1>School Profile</h1>
@@ -16,11 +22,6 @@
       <div class="image-content">
         <img src="images/home.jpg" alt="School Profile Image">
       </div>
-    </div>
-    <div id="auth-controls">
-      <a href="pages/login.html" id="login-link">Login</a>
-      <a href="pages/profile.html" id="profile-link" style="display: none;">View Profile</a>
-      <button id="logout-button" style="display: none;">Logout</button>
     </div>
   </div>
   <script type="module" src="js/main.js"></script>
