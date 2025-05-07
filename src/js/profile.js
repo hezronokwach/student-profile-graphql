@@ -144,9 +144,8 @@ function renderAuditRatioCard(data) {
   const user = data.user[0];
   const auditsDone = user.transactions.filter(t => t.type === 'up' || t.type === 'down').length;
   const auditsReceived = user.totalUp + user.totalDown;
-  
+
   const auditHtml = `
-    <h2 class="text-2xl font-semibold text-blue-600 mb-4">Audit Statistics</h2>
     <div class="space-y-2">
       <p class="text-gray-700"><strong>Audits Done:</strong> ${auditsDone}</p>
       <p class="text-gray-700"><strong>Audits Received:</strong> ${auditsReceived}</p>
@@ -154,8 +153,14 @@ function renderAuditRatioCard(data) {
       <p class="text-gray-700"><strong>Negative Feedback:</strong> ${user.totalDown}</p>
     </div>
   `;
-  
-  document.querySelector('.card.delay-5').innerHTML = auditHtml;
+
+  // Target the correct Audit Statistics card content
+  const auditStatsContent = document.querySelector('#audit-stats-card #audit-stats-content');
+  if (auditStatsContent) {
+    auditStatsContent.innerHTML = auditHtml;
+  } else {
+    console.error('Audit stats content container not found');
+  }
 }
 
 function renderPiscineStatsCard(data) {
@@ -163,18 +168,25 @@ function renderPiscineStatsCard(data) {
   const piscineProjects = user.progresses.filter(p => p.path.includes('piscine'));
   const passed = piscineProjects.filter(p => p.grade > 0).length;
   const failed = piscineProjects.filter(p => p.grade === 0).length;
-  
+
   const piscineHtml = `
-    <h2 class="text-2xl font-semibold text-blue-600 mb-4">Piscine Statistics</h2>
     <div class="space-y-2">
       <p class="text-gray-700"><strong>Total Attempts:</strong> ${piscineProjects.length}</p>
       <p class="text-gray-700"><strong>Passed:</strong> ${passed}</p>
       <p class="text-gray-700"><strong>Failed:</strong> ${failed}</p>
-      <p class="text-gray-700"><strong>Success Rate:</strong> ${((passed/piscineProjects.length) * 100).toFixed(1)}%</p>
+      <p class="text-gray-700"><strong>Success Rate:</strong> ${
+        piscineProjects.length > 0 ? ((passed / piscineProjects.length) * 100).toFixed(1) : 0
+      }%</p>
     </div>
   `;
-  
-  document.querySelector('.card.delay-6').innerHTML = piscineHtml;
+
+  // Target the correct Piscine Statistics card content
+  const piscineStatsContent = document.querySelector('#piscine-stats-card #piscine-stats-content');
+  if (piscineStatsContent) {
+    piscineStatsContent.innerHTML = piscineHtml;
+  } else {
+    console.error('Piscine stats content container not found');
+  }
 }
 
 // Update renderLineChart function
@@ -301,7 +313,7 @@ function renderPieChart(data) {
   const passed = results.filter(r => r.grade > 0).length;
   const failed = results.filter(r => r.grade === 0).length;
 
-  // Changed selector to match HTML structure - using delay-6 for pie chart
+  // Make sure we're targeting the correct pie chart card
   const pieChartCard = document.querySelector('.card.delay-6');
   if (!pieChartCard) {
     console.error('Pie chart container not found');
@@ -317,6 +329,12 @@ function renderPieChart(data) {
     </div>
     <div id="pass-fail-pie-chart" class="chart flex justify-center items-center h-64"></div>
   `;
+
+  // Only attempt to render the chart if there's data
+  if (results.length === 0) {
+    document.getElementById('pass-fail-pie-chart').innerHTML = '<p class="text-gray-500">No data available</p>';
+    return;
+  }
 
   const width = 250;
   const height = 250;

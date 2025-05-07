@@ -17,38 +17,49 @@
     <div id="loading-spinner" class="spinner">Loading...</div>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
       <!-- User Information Card -->
-      <div class="card delay-1">
+      <div class="card delay-1" id="user-info-card">
         <h2 class="text-2xl font-semibold text-blue-600 mb-4">User Information</h2>
         <p class="text-gray-700"><strong>ID:</strong> <span id="user-id">Loading...</span></p>
         <p class="text-gray-700"><strong>Login:</strong> <span id="user-login">Loading...</span></p>
       </div>
    
       <!-- Recent Grades Card -->
-      <div class="card delay-3">
+      <div class="card delay-2" id="grades-card">
         <h2 class="text-2xl font-semibold text-blue-600 mb-4 cursor-pointer toggle-section">Recent Grades</h2>
         <ul id="grades-list" class="space-y-2 text-gray-700"></ul>
       </div>
+      
       <!-- Recent Exercises & Projects Card -->
-      <div class="card delay-4">
+      <div class="card delay-3" id="exercises-card">
         <h2 class="text-2xl font-semibold text-blue-600 mb-4 cursor-pointer toggle-section">Recent Exercises & Projects</h2>
         <ul id="results-list" class="space-y-2 text-gray-700"></ul>
       </div>
-      <!-- Pass/Fail Ratio Graph Card -->
-      <div class="card delay-6">
+      
+      <!-- Audit Statistics Card -->
+      <div class="card delay-4" id="audit-stats-card">
+        <h2 class="text-2xl font-semibold text-blue-600 mb-4">Audit Statistics</h2>
+        <div id="audit-stats-content">
+          <!-- Audit Statistics will be inserted here -->
+        </div>
+      </div>
+      
+      <!-- Piscine Statistics Card -->
+      <div class="card delay-5" id="piscine-stats-card">
+        <h2 class="text-2xl font-semibold text-blue-600 mb-4">Piscine Statistics</h2>
+        <div id="piscine-stats-content">
+          <!-- Piscine Statistics will be inserted here -->
+        </div>
+      </div>
+      
+      <!-- Pass/Fail Ratio Graph Card (moved to second last position) -->
+      <div class="card delay-6" id="pass-fail-card">
         <h2 class="text-2xl font-semibold text-blue-600 mb-4">Pass/Fail Ratio</h2>
         <div id="pass-fail-pie-chart" class="chart"></div>
       </div>
-      <!-- Audit Statistics Card -->
-      <div class="card delay-5">
-        <!-- Audit Statistics will be inserted here -->
-      </div>
-      <!-- Piscine Statistics Card -->
-      <div class="card delay-4">
-        <!-- Piscine Statistics will be inserted here -->
-      </div>
     </div>
+    
     <!-- Add XP chart in full width section -->
-    <div class="card delay-7 col-span-full mt-6">
+    <div class="card delay-7 col-span-full mt-6" id="xp-chart-card">
       <h2 class="text-2xl font-semibold text-blue-600 mb-4">XP Progression Over Time</h2>
       <div id="xp-line-chart" class="chart overflow-x-auto"></div>
     </div>
