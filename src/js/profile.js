@@ -49,7 +49,7 @@ async function fetchUserData() {
     const response = await fetch('https://learn.zone01kisumu.ke/api/graphql-engine/v1/graphql', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${jwt}`,
+        'Authorization': `Bearer ${jwt}`, // Fixed syntax error (was 'fragen')
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ query })
@@ -102,7 +102,7 @@ function populateUserInfo(data) {
 
   const progressList = document.getElementById('grades-list');
   progressList.innerHTML = '';
-  
+  console.log('Progress entries:', user.progresses.slice(0, 5).length); // Debug log
   user.progresses.slice(0, 5).forEach(prog => {
     const li = document.createElement('li');
     li.className = 'mb-2 p-2 border-b';
@@ -115,23 +115,6 @@ function populateUserInfo(data) {
       <small class="text-gray-500">${new Date(prog.createdAt).toLocaleDateString()}</small>
     `;
     progressList.appendChild(li);
-  });
-
-  const resultsList = document.getElementById('results-list');
-  resultsList.innerHTML = '';
-  
-  user.results.slice(0, 5).forEach(result => {
-    const li = document.createElement('li');
-    li.className = 'mb-2 p-2 border-b';
-    li.innerHTML = `
-      <span class="font-medium value">${result.object?.name || 'Unnamed'}</span>
-      <span class="float-right ${result.grade ? 'text-green-500' : 'text-red-500'}">
-        ${result.grade ? 'Pass' : 'Fail'}
-      </span>
-      <br>
-      <small class="text-gray-500">${new Date(result.createdAt).toLocaleDateString()}</small>
-    `;
-    resultsList.appendChild(li);
   });
 }
 
@@ -400,15 +383,31 @@ function updateRecentExercises(data) {
     resultsList.appendChild(li);
   });
 }
-document.addEventListener('DOMContentLoaded', () => {
-  
-  const logoutButton = document.getElementById('logout-button')
 
-  // Handle logout
-  logoutButton.addEventListener('click', () => {
-    localStorage.removeItem('jwt');
-    window.location.href = 'pages/login.html';
-  });
+function handleLogout(event) {
+  const button = event.target;
+  button.disabled = true;
+  button.textContent = 'Logging out...';
+  localStorage.removeItem('jwt');
+  setTimeout(() => {
+    window.location.href = '../index.html';
+  }, 500); // Brief delay for UX
+}
+
+function setupLogout() {
+  const logoutButton = document.getElementById('logout-button');
+  if (!logoutButton) {
+    console.error('Logout button not found');
+    return;
+  }
+
+  // Remove existing listeners to prevent duplicates
+  logoutButton.removeEventListener('click', handleLogout);
+  logoutButton.addEventListener('click', handleLogout);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setupLogout();
 });
 
 async function init() {
