@@ -11,6 +11,9 @@ async function fetchUserData() {
         user {
           id
           login
+          attrs
+          totalUp
+          totalDown
           transactions(order_by: {createdAt: asc}) {
             id
             type
@@ -75,25 +78,39 @@ function populateUserInfo(data) {
 
   const user = data.user[0];
   
-  // Basic Info
-  document.getElementById('user-id').textContent = user.id;
-  document.getElementById('user-login').textContent = user.login;
-  
-  // XP Calculation
+  // Calculate overall grade and XP
   const totalXp = user.transactions
     .filter(t => t.type === 'xp')
     .reduce((sum, t) => sum + t.amount, 0);
-  document.getElementById('total-xp').textContent = Math.round(totalXp).toLocaleString();
 
-  // Progress Display
+  const overallGrade = user.results.length > 0 
+    ? (user.results.filter(r => r.grade > 0).length / user.results.length * 100).toFixed(1)
+    : 0;
+
+  // Update user info card with all information
+  const userInfoHtml = `
+    <h2 class="text-2xl font-semibold text-blue-600 mb-4">User Information</h2>
+    <div class="space-y-2">
+      <p class="text-gray-700"><strong>ID:</strong> ${user.id}</p>
+      <p class="text-gray-700"><strong>Login:</strong> ${user.login}</p>
+      <p class="text-gray-700"><strong>Total XP:</strong> ${Math.round(totalXp).toLocaleString()}</p>
+      <p class="text-gray-700"><strong>Overall Grade:</strong> ${overallGrade}%</p>
+      <p class="text-gray-700"><strong>Total Up Votes:</strong> ${user.totalUp || 0}</p>
+      <p class="text-gray-700"><strong>Total Down Votes:</strong> ${user.totalDown || 0}</p>
+    </div>
+  `;
+
+  document.querySelector('.card.delay-1').innerHTML = userInfoHtml;
+
+  // Update progress display - limit to 5 entries
   const progressList = document.getElementById('grades-list');
-  progressList.innerHTML = ''; // Clear existing content
+  progressList.innerHTML = '';
   
-  user.progresses.slice(0, 10).forEach(prog => { // Show last 10 entries
+  user.progresses.slice(0, 5).forEach(prog => {
     const li = document.createElement('li');
     li.className = 'mb-2 p-2 border-b';
     li.innerHTML = `
-      <span class="font-medium">${prog.object.name}</span>
+      <span class="font-medium">${prog.object.name || 'Unnamed'}</span>
       <span class="float-right ${prog.grade ? 'text-green-500' : 'text-red-500'}">
         ${prog.grade ? 'Pass' : 'Fail'}
       </span>
@@ -103,15 +120,11 @@ function populateUserInfo(data) {
     progressList.appendChild(li);
   });
 
-  populateRecentResults(user); // Add this line
-}
-
-// Add this function to populate recent results
-function populateRecentResults(user) {
+  // Update recent results - limit to 5 entries
   const resultsList = document.getElementById('results-list');
   resultsList.innerHTML = '';
   
-  user.results.slice(0, 10).forEach(result => {
+  user.results.slice(0, 5).forEach(result => {
     const li = document.createElement('li');
     li.className = 'mb-2 p-2 border-b';
     li.innerHTML = `
@@ -126,14 +139,14 @@ function populateRecentResults(user) {
   });
 }
 
+// Update renderLineChart function
 function renderLineChart(data) {
   if (!data.user[0].transactions.length) return;
 
-  const margin = {top: 20, right: 20, bottom: 30, left: 50};
-  const width = 600 - margin.left - margin.right;
+  const margin = {top: 40, right: 60, bottom: 60, left: 80};
+  const width = 1000 - margin.left - margin.right;
   const height = 400 - margin.top - margin.bottom;
 
-  // Clear existing chart
   d3.select('#xp-line-chart').html('');
 
   const svg = d3.select('#xp-line-chart')
@@ -143,7 +156,7 @@ function renderLineChart(data) {
     .append('g')
     .attr('transform', `translate(${margin.left},${margin.top})`);
 
-  // Prepare XP data
+  // Prepare data
   const xpData = data.user[0].transactions
     .filter(t => t.type === 'xp')
     .map(t => ({
@@ -171,12 +184,28 @@ function renderLineChart(data) {
     .domain([0, d3.max(cumulativeData, d => d.xp)])
     .range([height, 0]);
 
-  // Line generator
+  // Add X axis with time formatting
+  svg.append('g')
+    .attr('transform', `translate(0,${height})`)
+    .call(d3.axisBottom(x)
+      .ticks(10)
+      .tickFormat(d3.timeFormat('%b %d, %Y')))
+    .selectAll("text")
+    .style("text-anchor", "end")
+    .attr("dx", "-.8em")
+    .attr("dy", ".15em")
+    .attr("transform", "rotate(-45)");
+
+  // Add Y axis
+  svg.append('g')
+    .call(d3.axisLeft(y)
+      .tickFormat(d => `${Math.round(d).toLocaleString()} XP`));
+
+  // Add line
   const line = d3.line()
     .x(d => x(d.date))
     .y(d => y(d.xp));
 
-  // Add the line path
   svg.append('path')
     .datum(cumulativeData)
     .attr('class', 'line')
@@ -185,16 +214,60 @@ function renderLineChart(data) {
     .attr('stroke-width', 2)
     .attr('d', line);
 
-  // Add axes
-  svg.append('g')
-    .attr('transform', `translate(0,${height})`)
-    .call(d3.axisBottom(x));
+  // Add axis labels
+  svg.append("text")
+    .attr("class", "x label")
+    .attr("text-anchor", "middle")
+    .attr("x", width/2)
+    .attr("y", height + 50)
+    .text("Time");
 
-  svg.append('g')
-    .call(d3.axisLeft(y));
+  svg.append("text")
+    .attr("class", "y label")
+    .attr("text-anchor", "middle")
+    .attr("y", -60)
+    .attr("x", -height/2)
+    .attr("dy", ".75em")
+    .attr("transform", "rotate(-90)")
+    .text("Experience Points (XP)");
+
+  // Add tooltips
+  const tooltip = d3.select('#xp-line-chart')
+    .append('div')
+    .attr('class', 'tooltip')
+    .style('opacity', 0)
+    .style('position', 'absolute')
+    .style('background-color', 'rgba(0,0,0,0.7)')
+    .style('color', 'white')
+    .style('padding', '8px')
+    .style('border-radius', '4px');
+
+  // Add dots for data points
+  svg.selectAll('.dot')
+    .data(cumulativeData)
+    .enter()
+    .append('circle')
+    .attr('class', 'dot')
+    .attr('cx', d => x(d.date))
+    .attr('cy', d => y(d.xp))
+    .attr('r', 4)
+    .attr('fill', '#3498db')
+    .on('mouseover', function(event, d) {
+      tooltip.transition()
+        .duration(200)
+        .style('opacity', .9);
+      tooltip.html(`Date: ${d.date.toLocaleDateString()}<br/>XP: ${Math.round(d.xp).toLocaleString()}`)
+        .style('left', (event.pageX + 10) + 'px')
+        .style('top', (event.pageY - 28) + 'px');
+    })
+    .on('mouseout', function() {
+      tooltip.transition()
+        .duration(500)
+        .style('opacity', 0);
+    });
 }
 
-// Add this function to create pass/fail ratio pie chart
+// Update renderPieChart function 
 function renderPieChart(data) {
   const user = data.user[0];
   const results = user.results;
@@ -202,11 +275,10 @@ function renderPieChart(data) {
   const passed = results.filter(r => r.grade > 0).length;
   const failed = results.filter(r => r.grade === 0).length;
   
-  const width = 400;
-  const height = 400;
+  const width = 300; // Reduced from 400
+  const height = 300; // Reduced from 400
   const radius = Math.min(width, height) / 2;
   
-  // Clear existing chart
   d3.select('#pass-fail-pie-chart').html('');
   
   const svg = d3.select('#pass-fail-pie-chart')
@@ -246,7 +318,7 @@ function renderPieChart(data) {
     .join('text')
     .text(d => `${d.data.name}: ${d.data.value}`)
     .attr('transform', d => `translate(${arcGenerator.centroid(d)})`)
-    .style('text-anchor', 'middle')
+    .style('text-anchor', "middle")
     .style('font-size', 12);
 }
 
