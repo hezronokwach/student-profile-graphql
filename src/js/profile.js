@@ -139,13 +139,51 @@ function populateUserInfo(data) {
   });
 }
 
+// Add these new functions
+function renderAuditRatioCard(data) {
+  const user = data.user[0];
+  const auditsDone = user.transactions.filter(t => t.type === 'up' || t.type === 'down').length;
+  const auditsReceived = user.totalUp + user.totalDown;
+  
+  const auditHtml = `
+    <h2 class="text-2xl font-semibold text-blue-600 mb-4">Audit Statistics</h2>
+    <div class="space-y-2">
+      <p class="text-gray-700"><strong>Audits Done:</strong> ${auditsDone}</p>
+      <p class="text-gray-700"><strong>Audits Received:</strong> ${auditsReceived}</p>
+      <p class="text-gray-700"><strong>Positive Feedback:</strong> ${user.totalUp}</p>
+      <p class="text-gray-700"><strong>Negative Feedback:</strong> ${user.totalDown}</p>
+    </div>
+  `;
+  
+  document.querySelector('.card.delay-5').innerHTML = auditHtml;
+}
+
+function renderPiscineStatsCard(data) {
+  const user = data.user[0];
+  const piscineProjects = user.progresses.filter(p => p.path.includes('piscine'));
+  const passed = piscineProjects.filter(p => p.grade > 0).length;
+  const failed = piscineProjects.filter(p => p.grade === 0).length;
+  
+  const piscineHtml = `
+    <h2 class="text-2xl font-semibold text-blue-600 mb-4">Piscine Statistics</h2>
+    <div class="space-y-2">
+      <p class="text-gray-700"><strong>Total Attempts:</strong> ${piscineProjects.length}</p>
+      <p class="text-gray-700"><strong>Passed:</strong> ${passed}</p>
+      <p class="text-gray-700"><strong>Failed:</strong> ${failed}</p>
+      <p class="text-gray-700"><strong>Success Rate:</strong> ${((passed/piscineProjects.length) * 100).toFixed(1)}%</p>
+    </div>
+  `;
+  
+  document.querySelector('.card.delay-6').innerHTML = piscineHtml;
+}
+
 // Update renderLineChart function
 function renderLineChart(data) {
   if (!data.user[0].transactions.length) return;
 
-  const margin = {top: 40, right: 60, bottom: 60, left: 80};
-  const width = 1000 - margin.left - margin.right;
-  const height = 400 - margin.top - margin.bottom;
+  const margin = {top: 40, right: 60, bottom: 60, left: 100}; // Increased left margin
+  const width = Math.min(1000, window.innerWidth - 100) - margin.left - margin.right;
+  const height = 300 - margin.top - margin.bottom; // Reduced height
 
   d3.select('#xp-line-chart').html('');
 
@@ -214,22 +252,8 @@ function renderLineChart(data) {
     .attr('stroke-width', 2)
     .attr('d', line);
 
-  // Add axis labels
-  svg.append("text")
-    .attr("class", "x label")
-    .attr("text-anchor", "middle")
-    .attr("x", width/2)
-    .attr("y", height + 50)
-    .text("Time");
-
-  svg.append("text")
-    .attr("class", "y label")
-    .attr("text-anchor", "middle")
-    .attr("y", -60)
-    .attr("x", -height/2)
-    .attr("dy", ".75em")
-    .attr("transform", "rotate(-90)")
-    .text("Experience Points (XP)");
+  // Remove axis labels
+  // Removed svg.append("text") for x and y labels
 
   // Add tooltips
   const tooltip = d3.select('#xp-line-chart')
@@ -269,25 +293,46 @@ function renderLineChart(data) {
 
 // Update renderPieChart function 
 function renderPieChart(data) {
+  console.log('Rendering pie chart with data:', data);
+  
   const user = data.user[0];
   const results = user.results;
   
   const passed = results.filter(r => r.grade > 0).length;
   const failed = results.filter(r => r.grade === 0).length;
-  
-  const width = 300; // Reduced from 400
-  const height = 300; // Reduced from 400
+
+  // Changed selector to match HTML structure - using delay-6 for pie chart
+  const pieChartCard = document.querySelector('.card.delay-6');
+  if (!pieChartCard) {
+    console.error('Pie chart container not found');
+    return;
+  }
+
+  pieChartCard.innerHTML = `
+    <h2 class="text-2xl font-semibold text-blue-600 mb-4">Pass/Fail Ratio</h2>
+    <div class="text-center mb-4">
+      <p class="text-gray-700"><strong>Total Results:</strong> ${results.length}</p>
+      <p class="text-green-500"><strong>Passed:</strong> ${passed}</p>
+      <p class="text-red-500"><strong>Failed:</strong> ${failed}</p>
+    </div>
+    <div id="pass-fail-pie-chart" class="chart flex justify-center items-center h-64"></div>
+  `;
+
+  const width = 250;
+  const height = 250;
   const radius = Math.min(width, height) / 2;
   
+  // Clear existing SVG
   d3.select('#pass-fail-pie-chart').html('');
   
   const svg = d3.select('#pass-fail-pie-chart')
     .append('svg')
-    .attr('width', width)
-    .attr('height', height)
+    .attr('viewBox', `0 0 ${width} ${height}`)
+    .attr('width', '100%')
+    .attr('height', '100%')
     .append('g')
     .attr('transform', `translate(${width/2},${height/2})`);
-    
+
   const color = d3.scaleOrdinal()
     .domain(['Pass', 'Fail'])
     .range(['#34D399', '#EF4444']);
@@ -299,36 +344,79 @@ function renderPieChart(data) {
     {name: 'Pass', value: passed},
     {name: 'Fail', value: failed}
   ]);
-  
+
   const arcGenerator = d3.arc()
     .innerRadius(0)
-    .outerRadius(radius);
+    .outerRadius(radius * 0.7);
     
-  svg.selectAll('mySlices')
+  // Add slices with animation
+  svg.selectAll('path')
     .data(data_ready)
     .join('path')
     .attr('d', arcGenerator)
     .attr('fill', d => color(d.data.name))
     .attr('stroke', 'white')
-    .style('stroke-width', '2px');
+    .style('stroke-width', '2px')
+    .style('opacity', 0)
+    .transition()
+    .duration(600)
+    .style('opacity', 1);
     
   // Add labels
-  svg.selectAll('mySlices')
+  svg.selectAll('text')
     .data(data_ready)
     .join('text')
-    .text(d => `${d.data.name}: ${d.data.value}`)
+    .text(d => `${d.data.name}: ${((d.data.value / (passed + failed)) * 100).toFixed(1)}%`)
     .attr('transform', d => `translate(${arcGenerator.centroid(d)})`)
-    .style('text-anchor', "middle")
-    .style('font-size', 12);
+    .style('text-anchor', 'middle')
+    .style('font-size', '12px')
+    .style('fill', 'black')
+    .style('font-weight', 'bold')
+    .style('opacity', 0)
+    .transition()
+    .duration(600)
+    .style('opacity', 1);
 }
 
+// Update Recent Exercises & Projects card
+function updateRecentExercises(data) {
+  const user = data.user[0];
+  const recentExercisesCard = document.querySelector('.card.delay-4');
+  const resultsList = document.getElementById('results-list');
+  
+  if (!resultsList) {
+    console.error('Results list container not found');
+    return;
+  }
+
+  resultsList.innerHTML = '';
+  
+  user.results.slice(0, 5).forEach(result => {
+    const li = document.createElement('li');
+    li.className = 'mb-2 p-2 border-b';
+    li.innerHTML = `
+      <span class="font-medium">${result.object?.name || 'Unnamed'}</span>
+      <span class="float-right ${result.grade ? 'text-green-500' : 'text-red-500'}">
+        ${result.grade ? 'Pass' : 'Fail'}
+      </span>
+      <br>
+      <small class="text-gray-500">${new Date(result.createdAt).toLocaleDateString()}</small>
+    `;
+    resultsList.appendChild(li);
+  });
+}
+
+// Update init function
 async function init() {
   const data = await fetchUserData();
   if (data) {
     document.getElementById('loading-spinner').style.display = 'none';
     populateUserInfo(data);
     renderLineChart(data);
-    renderPieChart(data); // Add this line
+    renderPieChart(data);
+    renderAuditRatioCard(data);
+    renderPiscineStatsCard(data);
+    updateRecentExercises(data); // Add this line
   }
 }
 
