@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile - School Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/styles.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div class="profile-container max-w-6xl mx-auto p-6">
+    <h1 class="text-3xl font-bold text-center text-white mb-6">User Profile</h1>
+    <div id="auth-controls" class="mb-6">
+      <a href="../index.html" class="btn btn-primary">Home</a>
+      <button id="logout-button" class="btn btn-danger">Logout</button>
+    </div>
+    <div id="loading-spinner" class="spinner">Loading...</div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+      <!-- User Information Card -->
+      <div class="card delay-1" id="user-info-card">
+        <h2 class="text-2xl font-semibold text-blue-600 mb-4">User Information</h2>
+        
+      </div>
+   
+      <!-- Recent Grades Card -->
+      <div class="card delay-2" id="grades-card">
+        <h2 class="text-2xl font-semibold text-blue-600 mb-4 cursor-pointer toggle-section">Recent Grades</h2>
+        <ul id="grades-list" class="space-y-2"></ul>
+      </div>
+      
+      <!-- Recent Exercises & Projects Card -->
+      <div class="card delay-3" id="exercises-card">
+        <h2 class="text-2xl font-semibold text-blue-600 mb-4 cursor-pointer toggle-section">Recent Exercises & Projects</h2>
+        <ul id="results-list" class="space-y-2"></ul>
+      </div>
+      
+      <div class="card delay-4" id="audit-stats-card">
+        <h2 class="text-2xl font-semibold text-blue-600 mb-4">Skills</h2>
+        <div id="audit-stats-content"></div>
+      </div>
+      
+      <!-- Piscine Statistics Card -->
+      <div class="card delay-5" id="piscine-stats-card">
+        <h2 class="text-2xl font-semibold text-blue-600 mb-4">Piscine Statistics</h2>
+        <div id="piscine-stats-content"></div>
+      </div>
+      
+      <!-- Pass/Fail Ratio Graph Card -->
+      <div class="card delay-6" id="pass-fail-card">
+        <h2 class="text-2xl font-semibold text-blue-600 mb-4">Pass/Fail Ratio</h2>
+        <div id="pass-fail-pie-chart" class="chart"></div>
+      </div>
+    </div>
+    
+    <!-- XP Chart -->
+    <div class="card delay-7 col-span-full mt-6" id="xp-chart-card">
+      <h2 class="text-2xl font-semibold text-blue-600 mb-4">XP Progression Over Time</h2>
+      <div id="xp-line-chart" class="chart overflow-x-auto"></div>
+    </div>
+    <div id="error-message" class="text-red-400 text-center mt-6"></div>
+  </div>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+  <script type="module" src="../js/profile.js"></script>
+</body>
+</html>
