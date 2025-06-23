@@ -2,35 +2,54 @@ async function fetchUserData() {
   try {
     const jwt = localStorage.getItem('jwt');
     if (!jwt) {
-      window.location.href = 'login.html';
+      window.location.href = '/login';
       return;
     }
 
     const query = `
-      {
+      query {
         user {
           id
           login
           attrs
           totalUp
           totalDown
-          transactions(order_by: {createdAt: asc}) {
+          skills: transactions(
+            where: {type: {_like: "skill_%"}},
+            order_by: {amount: desc}
+          ) {
+            type
+            amount
+          }
+          transactions(
+            where: {
+              eventId: {_eq: 75}
+            }
+            order_by: {
+              createdAt: asc
+            }
+          ) {
             id
             type
             amount
             createdAt
             path
-          }
-          progresses(order_by: {createdAt: desc}) {
-            id
-            grade
-            createdAt
             object {
               id
               name
               type
             }
+          }
+          progresses(order_by: {createdAt: desc}) {
+            id
+            grade
+            createdAt
             path
+            object {
+              id
+              name
+              type
+            }
           }
           results {
             id
@@ -49,25 +68,38 @@ async function fetchUserData() {
     const response = await fetch('https://learn.zone01kisumu.ke/api/graphql-engine/v1/graphql', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${jwt}`, // Fixed syntax error (was 'fragen')
+        'Authorization': `Bearer ${jwt}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ query })
     });
 
     const data = await response.json();
-    console.log(data);
+    console.log('Raw GraphQL Response:', data);
 
-    if (!data.data || !data.data.user) {
+    if (data.errors) {
+      throw new Error(data.errors[0].message);
+    }
+
+    if (!data.data?.user?.[0]) {
+      console.error('Invalid data structure:', data);
       throw new Error('Invalid response data structure');
     }
 
     return data.data;
   } catch (error) {
+    console.error('Detailed error:', error);
     document.getElementById('error-message').textContent = 'Failed to load data: ' + error.message;
-    console.error('Error fetching data:', error);
     return null;
   }
+}
+
+// Helper function for XP formatting
+function formatXP(xp) {
+  if (typeof xp !== 'number') return '0 XP';
+  if (xp >= 1000000) return (xp / 1000000).toFixed(1) + ' MB';
+  if (xp >= 1000) return (xp / 1000).toFixed(1) + ' KB';
+  return xp.toLocaleString() + ' XP';
 }
 
 function populateUserInfo(data) {
@@ -86,6 +118,12 @@ function populateUserInfo(data) {
     ? (user.results.filter(r => r.grade > 0).length / user.results.length * 100).toFixed(1)
     : 0;
 
+  const upVotes = (user.totalUp / 1000000).toFixed(2);
+  const downVotes = (user.totalDown / 1000000).toFixed(2);
+  const auditRatio = user.totalDown > 0 
+    ? Math.round((user.totalUp / user.totalDown) * 10) / 10 
+    : 'N/A';
+
   const userInfoHtml = `
     <h2 class="text-2xl font-semibold text-blue-600 mb-4">User Information</h2>
     <div class="space-y-2">
@@ -93,8 +131,9 @@ function populateUserInfo(data) {
       <div class="key-value-pair"><span class="key">Login:</span> <span class="value">${user.login}</span></div>
       <div class="key-value-pair"><span class="key">Total XP:</span> <span class="value">${Math.round(totalXp).toLocaleString()}</span></div>
       <div class="key-value-pair"><span class="key">Overall Grade:</span> <span class="value">${overallGrade}%</span></div>
-      <div class="key-value-pair"><span class="key">Total Up Votes:</span> <span class="value">${user.totalUp || 0}</span></div>
-      <div class="key-value-pair"><span class="key">Total Down Votes:</span> <span class="value">${user.totalDown || 0}</span></div>
+      <div class="key-value-pair"><span class="key">Up Votes:</span> <span class="value">${upVotes}M</span></div>
+      <div class="key-value-pair"><span class="key">Down Votes:</span> <span class="value">${downVotes}M</span></div>
+      <div class="key-value-pair"><span class="key">Audit Ratio:</span> <span class="value">${auditRatio}</span></div>
     </div>
   `;
 
@@ -102,42 +141,98 @@ function populateUserInfo(data) {
 
   const progressList = document.getElementById('grades-list');
   progressList.innerHTML = '';
-  console.log('Progress entries:', user.progresses.slice(0, 5).length); // Debug log
+  console.log('Progress entries:', user.progresses.slice(0, 5));
+
   user.progresses.slice(0, 5).forEach(prog => {
     const li = document.createElement('li');
     li.className = 'mb-2 p-2 border-b';
+    
+    // Determine project status
+    let status, statusClass;
+    if (prog.grade === null || prog.grade === undefined) {
+      status = 'In Progress';
+      statusClass = 'text-yellow-500';
+    } else if (prog.grade === 0) {
+      status = 'Failed';
+      statusClass = 'text-red-500';
+    } else {
+      status = 'Passed';
+      statusClass = 'text-green-500';
+    }
+
     li.innerHTML = `
       <span class="font-medium value">${prog.object.name || 'Unnamed'}</span>
-      <span class="float-right ${prog.grade ? 'text-green-500' : 'text-red-500'}">
-        ${prog.grade ? 'Pass' : 'Fail'}
+      <span class="float-right ${statusClass}">
+        ${status}
       </span>
       <br>
-      <small class="text-gray-500">${new Date(prog.createdAt).toLocaleDateString()}</small>
+      <small class="text-gray-500">
+        ${new Date(prog.createdAt).toLocaleDateString()} 
+        ${prog.grade !== null ? `(Grade: ${prog.grade})` : ''}
+      </small>
     `;
     progressList.appendChild(li);
   });
 }
 
-function renderAuditRatioCard(data) {
+function renderSkillsCard(data) {
   const user = data.user[0];
-  const auditsDone = user.transactions.filter(t => t.type === 'up' || t.type === 'down').length;
-  const auditsReceived = user.totalUp + user.totalDown;
+  const skills = user.skills || [];
+  console.log('Raw skills data:', skills);
 
-  const auditHtml = `
-    <div class="space-y-2">
-      <div class="key-value-pair"><span class="key">Audits Done:</span> <span class="value">${auditsDone}</span></div>
-      <div class="key-value-pair"><span class="key">Audits Received:</span> <span class="value">${auditsReceived}</span></div>
-      <div class="key-value-pair"><span class="key">Positive Feedback:</span> <span class="value">${user.totalUp}</span></div>
-      <div class="key-value-pair"><span class="key">Negative Feedback:</span> <span class="value">${user.totalDown}</span></div>
+  const skillsContent = document.querySelector('#audit-stats-card #audit-stats-content');
+  if (!skillsContent) {
+    console.error('Skills container not found');
+    return;
+  }
+
+  // Aggregate skills by type
+  const skillsMap = skills.reduce((acc, skill) => {
+    const type = skill.type.replace('skill_', '');
+    if (!acc[type]) {
+      acc[type] = 0;
+    }
+    acc[type] += skill.amount;
+    return acc;
+  }, {});
+
+  // Convert to array and sort
+  const formattedSkills = Object.entries(skillsMap)
+    .map(([name, amount]) => ({
+      name: name
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' '),
+      amount: Math.round(amount)
+    }))
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 5);  // Keep top 5 skills
+
+  console.log('Aggregated skills:', formattedSkills);
+
+  const maxAmount = formattedSkills[0]?.amount || 0;
+
+  skillsContent.innerHTML = `
+    <div class="p-6 bg-white rounded-lg shadow">
+      <h3 class="text-xl font-semibold mb-4 text-gray-800">Top Skills</h3>
+      ${formattedSkills.length > 0 ? 
+        formattedSkills.map(skill => `
+          <div class="mb-4">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-gray-700 font-medium">${skill.name}</span>
+              <span class="text-blue-600 font-semibold">${formatXP(skill.amount)}</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5">
+              <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" 
+                style="width: ${(skill.amount / maxAmount * 100).toFixed(1)}%">
+              </div>
+            </div>
+          </div>
+        `).join('') :
+        '<p class="text-gray-500">No skills data available yet</p>'
+      }
     </div>
   `;
-
-  const auditStatsContent = document.querySelector('#audit-stats-card #audit-stats-content');
-  if (auditStatsContent) {
-    auditStatsContent.innerHTML = auditHtml;
-  } else {
-    console.error('Audit stats content container not found');
-  }
 }
 
 function renderPiscineStatsCard(data) {
@@ -367,9 +462,26 @@ function updateRecentExercises(data) {
     return;
   }
 
+  // Filter results to only show current year and sort by date (most recent first)
+  const currentYear = new Date().getFullYear();
+  const recentResults = user.results
+    .filter(result => {
+      const resultDate = new Date(result.createdAt);
+      return resultDate.getFullYear() <= currentYear;
+    })
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 5);
+
   resultsList.innerHTML = '';
   
-  user.results.slice(0, 5).forEach(result => {
+  recentResults.forEach(result => {
+    const date = new Date(result.createdAt);
+    const formattedDate = new Intl.DateTimeFormat('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    }).format(date);
+
     const li = document.createElement('li');
     li.className = 'mb-2 p-2 border-b';
     li.innerHTML = `
@@ -378,7 +490,7 @@ function updateRecentExercises(data) {
         ${result.grade ? 'Pass' : 'Fail'}
       </span>
       <br>
-      <small class="text-gray-500">${new Date(result.createdAt).toLocaleDateString()}</small>
+      <small class="text-gray-500">${formattedDate}</small>
     `;
     resultsList.appendChild(li);
   });
@@ -390,7 +502,7 @@ function handleLogout(event) {
   button.textContent = 'Logging out...';
   localStorage.removeItem('jwt');
   setTimeout(() => {
-    window.location.href = '../index.html';
+    window.location.href = '/';
   }, 500); // Brief delay for UX
 }
 
@@ -417,7 +529,7 @@ async function init() {
     populateUserInfo(data);
     renderLineChart(data);
     renderPieChart(data);
-    renderAuditRatioCard(data);
+    renderSkillsCard(data);  // Replace renderAuditRatioCard with renderSkillsCard
     renderPiscineStatsCard(data);
     updateRecentExercises(data);
   }
