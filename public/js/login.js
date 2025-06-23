@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from 'https://cdn.jsdelivr.net/npm/axios@1.6.8/+esm';
 
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('login-form');
