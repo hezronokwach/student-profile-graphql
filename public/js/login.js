@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const jwt = response.data; // Adjust based on actual response structure
       localStorage.setItem('jwt', jwt);
-      window.location.href = '/profile'; // Update redirect path for Vercel
+      window.location.href = '/pages/profile.html';
     } catch (error) {
       errorMessage.textContent = 'Invalid credentials, please try again';
       console.error('Login error:', error);
