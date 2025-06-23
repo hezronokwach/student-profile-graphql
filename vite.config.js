@@ -1,6 +1,7 @@
 export default {
-    root: 'src',
-    build: {
-      outDir: '../dist'
-    }
-  };
+  root: '.', // Set root to project root so Vite uses public/index.html
+  publicDir: 'public', // Explicitly set public directory
+  build: {
+    outDir: 'dist' // Output to dist (default)
+  }
+};
